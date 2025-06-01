@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Classifying toxic comments with Qwen3</title>
+
+	<link rel="stylesheet" href="dist/reset.css">
+	<link rel="stylesheet" href="dist/reveal.css">
+	<link rel="stylesheet" href="dist/theme/dracula.css">
+
+	<!-- Theme used for syntax highlighted code -->
+	<link rel="stylesheet" href="plugin/highlight/monokai.css">
+</head>
+
+<body>
+	<div class="reveal">
+		<div class="slides">
+			<section>
+
+				<h2>Classifying toxic comments</h2>
+				<h1>with Qwen3</h1>
+				<pre><code>
+  LIAR LIAR PANTS ON FIRE... how dumb does he think we are.  
+  We think justin is extremely dumb. What a goof ball. 
+  He is gets in deeper and deeper over his head.  
+  Time to hold  him up as an adult and stop allowing 
+  him to think and speak.
+
+                                (from Jigsaw Toxicity Dataset)
+				</code></pre>
+				<br>
+				<small>Hardcore AI Hackathon | Berlin 2025 | RomanG</small>
+			</section>
+			<section>
+				<h2>How it started</h2>
+				<ul>
+					<li>A collab with <i>Dr. Chripa Schneller</i></li>
+					<li>Can you detect toxicity level in online comms?</li>
+				</ul>
+				<img src="img/turret2.png" height="400px">
+			</section>
+			<section>
+				<h2>prompting vs fine-tuning</h2>
+				<img src="img/thinking.avif" height="300px">
+				<p><strong>Opinion</strong>: GPT4/Claude4/Deepseek is all you need, no training data required, just
+					write a proper prompt</p>
+			</section>
+			<section>
+				<h2>data > opinions</h2>
+				<img src="img/opinion.gif">
+				<ul>
+					<li>no data = LLM is better than nothing</li>
+					<li>but what if we do have data?</li>
+				</ul>
+			</section>
+			<section>
+				<h2>Necro-kaggling</h2>
+				<img src="img/jigsaw.png" height="400px">
+				<ol>
+					<li>Pick a mature & old competition</li>
+					<li>Use 2025 tech vs. legacy</li>
+				</ol>
+			</section>
+			<section>
+				<h2>Data</h2>
+				<img src="img/data.png" height="300px">
+				<ul>
+					<li>Civil comments, comments from news sites</li>
+					<li>1.8M train + 100K test, human labels</li>
+				</ul>
+			</section>
+			<section>
+				<h2>Leaderboard</h2>
+				<img src="img/leaderboard.png">
+			</section>
+			<section>
+				<h2>Metric: ROC-AUC</h2>
+				<p>A binary classification metric, 0.5=bad 1.0=perfect</p>
+				<img src="img/roc.webp" height="350px">
+				<small>Disclaimer: we screwed leaderboard bias-AUC score - so we use global AUC</small>
+			</section>
+			<section>
+				<h2>Baseline #1: BERT</h2>
+				<table>
+					<thead>
+						<tr>
+							<td>Try</td>
+							<td>Model</td>
+							<td>Size</td>
+							<td>ROCAUC</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td>bert-base-uncased</td>
+							<td>300M</td>
+							<td class="fragment highlight-green">0.9686</td>
+						</tr>
+						<tr class="fragment">
+							<td>2</td>
+							<td>ModernBERT-base</td>
+							<td>300M</td>
+							<td>0.9613</td>
+						</tr>
+						<tr class="fragment">
+							<td>3</td>
+							<td>ModernBERT-large</td>
+							<td>500M</td>
+							<td>0.9677</td>
+						</tr>
+					</tbody>
+				</table>
+				<img src="img/clint.gif" height="200px" class="fragment">
+			</section>
+			<section>
+				<h2>Baseline #2: GPT4</h2>
+				<img src="img/prompt.png" height="250px" style="margin: 0px;">
+				<table>
+					<thead>
+						<tr>
+							<td>Try</td>
+							<td>Model</td>
+							<td>Size</td>
+							<td>ROCAUC</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td>bert-base-uncased</td>
+							<td>300M</td>
+							<td class="fragment highlight-green">0.9686</td>
+						</tr>
+						<tr class="fragment">
+							<td>4</td>
+							<td>gpt-4.1-mini</td>
+							<td>smol</td>
+							<td>0.8350</td>
+						</tr>
+						<tr class="fragment">
+							<td>5</td>
+							<td>gpt-4.1</td>
+							<td>big</td>
+							<td>0.8591</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+			<section>
+				<h2>Qwen3 of despair</h2>
+				<img src="img/sad.jpg" height="300px">
+				<ol>
+					<li>Prefill with prompt</li>
+					<li>Special token &lt;|give-me-class-activations-please|&gt;</li>
+					<li>Generate single output token, slap classifier head</li>
+				</ol>
+			</section>
+			<section>
+				<h2>Qwen3: raw or prompted?</h2>
+				<pre><code>
+SYSTEM_PROMPT = (
+  "You are a forum moderator looking for toxic, obscene comments, "
+  "threats, insults, identity attacks and sexual content. "					
+)
+				</code></pre>
+				<table>
+					<thead>
+						<tr>
+							<td>Try</td>
+							<td>Model</td>
+							<td>Size</td>
+							<td>ROCAUC</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td>bert-base-uncased</td>
+							<td>300M</td>
+							<td>0.9686</td>
+						</tr>
+						<tr class="fragment">
+							<td>6</td>
+							<td>qwen3 (raw)</td>
+							<td>0.6B</td>
+							<td>0.9715</td>
+						</tr>
+						<tr class="fragment">
+							<td>7</td>
+							<td>qwen3 (chatml)</td>
+							<td>0.6B</td>
+							<td class="fragment highlight-green">0.9724</td>
+						</tr>
+					</tbody>
+				</table>
+				<p><strong>Outcome</strong>: slightly better results with ChatML</p>
+			</section>
+			<section>
+				<h2>Qwen3: QLoRA of full?</h2>
+				<img src="img/rig.jpg" height="400px">
+				<blockquote>
+					I'm limited by the technology of my time (H.Stark)
+				</blockquote>
+
+			</section>
+			<section>
+				<h2>Qwen3: QLoRA of full?</h2>
+				<p>QLoRA: bigger models, potential drop in quality?</p>
+				<table>
+					<thead>
+						<tr>
+							<td>Try</td>
+							<td>Model</td>
+							<td>Size</td>
+							<td>ROCAUC</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td>bert-base-uncased</td>
+							<td>300M</td>
+							<td>0.9686</td>
+						</tr>
+						<tr>
+							<td>7</td>
+							<td>qwen3 (full)</td>
+							<td>0.6B</td>
+							<td class="fragment highlight-green">0.9724</td>
+						</tr>
+						<tr class="fragment">
+							<td>8</td>
+							<td>qwen3 (qlora, 4bit)</td>
+							<td>0.6B</td>
+							<td class="fragment highlight-red">0.9722</td>
+						</tr>
+						<tr class="fragment">
+							<td>9</td>
+							<td>qwen3 (qlora, 8bit)</td>
+							<td>0.6B</td>
+							<td>0.9711</td>
+						</tr>
+					</tbody>
+				</table>
+				<p><strong>Outcome</strong>: QLoRA drop is okey</p>
+			</section>
+			<section>
+				<h2>Qwen3: to the sky 🚀🚀🚀</h2>
+				<table>
+					<thead>
+						<tr>
+							<td>Try</td>
+							<td>Model</td>
+							<td>Size</td>
+							<td>Time</td>
+							<td>ROCAUC</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td>BERT</td>
+							<td>300M</td>
+							<td>0.8h</td>
+							<td class="fragment highlight-red">0.9686</td>
+						</tr>
+						<tr>
+							<td>7</td>
+							<td>qwen3</td>
+							<td>0.6B</td>
+							<td>3.5h</td>
+							<td>0.9724</td>
+						</tr>
+						<tr class="fragment">
+							<td>10</td>
+							<td>qwen3</td>
+							<td>1.7B</td>
+							<td>7.5h</td>
+							<td>0.9745</td>
+						</tr>
+						<tr class="fragment">
+							<td>11</td>
+							<td>qwen3</td>
+							<td>14B</td>
+							<td>~40h*</td>
+							<td class="fragment highlight-green">0.9759</td>
+						</tr>
+						<tr class="fragment">
+							<td>11</td>
+							<td>qwen3</td>
+							<td>32B</td>
+							<td>~70h*</td>
+							<td>TBD</td>
+						</tr>
+					</tbody>
+				</table>
+				<p><strong>Outcome</strong>: +1% quality for 150x price</p>
+			</section>
+		</div>
+	</div>
+
+	<script src="dist/reveal.js"></script>
+	<script src="plugin/notes/notes.js"></script>
+	<script src="plugin/markdown/markdown.js"></script>
+	<script src="plugin/highlight/highlight.js"></script>
+	<script>
+		// More info about initialization & config:
+		// - https://revealjs.com/initialization/
+		// - https://revealjs.com/config/
+		Reveal.initialize({
+			hash: true,
+
+			// Learn about plugins: https://revealjs.com/plugins/
+			plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+		});
+	</script>
+</body>
+
+</html>
