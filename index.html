@@ -197,10 +197,10 @@ SYSTEM_PROMPT = (
 						</tr>
 					</tbody>
 				</table>
-				<p><strong>Outcome</strong>: slightly better results with ChatML</p>
+				<p class="fragment"><strong>Outcome</strong>: slightly better results with ChatML</p>
 			</section>
 			<section>
-				<h2>Qwen3: QLoRA of full?</h2>
+				<h2>QLoRA: fine-tuning for GPU poor</h2>
 				<img src="img/rig.jpg" height="400px">
 				<blockquote>
 					I'm limited by the technology of my time (H.Stark)
@@ -217,6 +217,7 @@ SYSTEM_PROMPT = (
 							<td>Model</td>
 							<td>Size</td>
 							<td>ROCAUC</td>
+							<td>VRAM</td>
 						</tr>
 					</thead>
 					<tbody>
@@ -225,28 +226,32 @@ SYSTEM_PROMPT = (
 							<td>bert-base-uncased</td>
 							<td>300M</td>
 							<td>0.9686</td>
+							<td>5gb</td>
 						</tr>
 						<tr>
 							<td>7</td>
 							<td>qwen3 (full)</td>
 							<td>0.6B</td>
 							<td class="fragment highlight-green">0.9724</td>
+							<td>12gb</td>
 						</tr>
 						<tr class="fragment">
 							<td>8</td>
 							<td>qwen3 (qlora, 4bit)</td>
 							<td>0.6B</td>
 							<td class="fragment highlight-red">0.9722</td>
+							<td>8gb</td>
 						</tr>
 						<tr class="fragment">
 							<td>9</td>
 							<td>qwen3 (qlora, 8bit)</td>
 							<td>0.6B</td>
 							<td>0.9711</td>
+							<td>10gb</td>
 						</tr>
 					</tbody>
 				</table>
-				<p><strong>Outcome</strong>: QLoRA drop is okey</p>
+				<p class="fragment"><strong>Outcome</strong>: QLoRA drop is okey</p>
 			</section>
 			<section>
 				<h2>Qwen3: to the sky 🚀🚀🚀</h2>
@@ -298,7 +303,20 @@ SYSTEM_PROMPT = (
 						</tr>
 					</tbody>
 				</table>
-				<p><strong>Outcome</strong>: +1% quality for 150x price</p>
+				<p class="fragment"><strong>Outcome</strong>: +1% quality for 150x price</p>
+			</section>
+			<section>
+				<h2>TIL: Today I learned</h2>
+				<ul>
+					<li class="fragment"><strong>Prompting vs fine-tuning</strong>: it depends on training data</li>
+					<li class="fragment"><strong>Full vs QLoRa</strong>: worth trying (for GPU poor)</li>
+					<li class="fragment"><strong>Scale law</strong>: exponential compute needed</li>
+				</ul>
+				<br><br>
+				<ul>
+					<li class="fragment"><strong>Training code:</strong> <a href="https://github.com/shuttie/qwen3-toxic">github.com/shuttie/qwen3-toxic</a></li>
+				</ul>
+				<p class="fragment"><img src="img/qr.jpg" height="300px" style="margin: 0px;"></p>
 			</section>
 		</div>
 	</div>
